@@ -1,0 +1,108 @@
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#user-accounts-versus-service-accounts
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aws-ecr-auth-docker-config-updater
+  namespace: vote
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: secrets-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: secrets-rolebinding
+roleRef:
+  kind: ClusterRole
+  name: secrets-role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: aws-ecr-auth-docker-config-updater
+  namespace: vote
+---
+# https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#cronjob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: aws-ecr-auth-docker-config-updater
+  namespace: vote
+spec:
+  suspend: false
+  # https://crontab.guru/every-minute    "* * * * *"
+  # https://crontab.guru/every-5-minutes "*/5 * * * *"
+  # https://crontab.guru/every-8-hours   "0 */8 * * *"
+  schedule: "*/3 * * * *"
+  failedJobsHistoryLimit: 0
+  successfulJobsHistoryLimit: 0
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: aws-ecr-auth-docker-config-updater
+          restartPolicy: Never
+          volumes:
+          - emptyDir:
+              medium: Memory
+            name: store
+          initContainers:
+            - image: amazon/aws-cli
+              name: get-token
+              envFrom:
+              - secretRef:
+                  name: aws-access-keys
+              volumeMounts:
+                - mountPath: /store
+                  name: store
+              command:
+                - /bin/sh
+                - -ce
+                - aws ecr get-login-password --region ${aws_region} > /store/token
+          containers:
+            - image: bitnami/kubectl
+              name: kubectl
+              volumeMounts:
+                - mountPath: /store
+                  name: store
+              command:
+                - /bin/sh
+                - -c
+                - |-
+                  date "+%Y-%d-%m %H:%M:%S config-updater"
+                  
+                  DATE=$(date "+%Y-%m-%dT%H:%M:%SZ")
+                  kubectl create secret docker-registry aws-ecr-auth-docker-config \
+                    --docker-server=${docker_server} \
+                    --docker-username=AWS \
+                    --docker-password="$(cat /store/token)" \
+                    --dry-run=client \
+                    --namespace vote \
+                    --output json |
+                    jq --arg v $DATE 'del(.metadata.creationTimestamp) | .metadata.annotations.updateTimestamp = $v' |
+                    kubectl apply -f -
+
+
+                  # note : delete / create is simpler and adds a new creationTimestamp
+                  # but we have short delay (~ 1 second) without secret. This absence can throw to an error
+                  
+                  # kubectl delete secret aws-ecr-auth-docker-config \
+                  #   --namespace vote \
+                  #   --ignore-not-found
+
+                  # kubectl create secret docker-registry aws-ecr-auth-docker-config \
+                  #   --docker-server=${docker_server} \
+                  #   --docker-username=AWS \
+                  #   --docker-password="$(cat /store/token)" \
+                  #   --dry-run=client \
+                  #   --namespace vote \
+                  #   --output yaml | 
+                  #   kubectl apply -f -

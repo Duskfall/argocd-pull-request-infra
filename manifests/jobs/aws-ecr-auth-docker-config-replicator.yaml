@@ -1,0 +1,69 @@
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#user-accounts-versus-service-accounts
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aws-ecr-auth-docker-config-replicator
+  namespace: vote
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aws-ecr-auth-docker-config-replicator
+rules:
+- apiGroups: ['']
+  resources: ["namespaces"]
+  verbs: ["list"] # ["get", "list", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "create", "patch"] # ["get", "list", "create", "update", "patch", "delete"]
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: aws-ecr-auth-docker-config-replicator
+roleRef:
+  kind: ClusterRole
+  name: aws-ecr-auth-docker-config-replicator
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: aws-ecr-auth-docker-config-replicator
+  namespace: vote
+---
+# https://kubernetes.io/docs/concepts/workloads/controllers/job/
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aws-ecr-auth-docker-config-replicator
+  namespace: vote
+spec:
+  suspend: false
+  template:
+    spec:
+      serviceAccountName: aws-ecr-auth-docker-config-replicator
+      restartPolicy: Never
+      containers:
+        - image: bitnami/kubectl
+          name: kubectl
+          command:
+            - /bin/sh
+            - -c
+            - |-
+              while true; do
+              date "+%Y-%d-%m %H:%M:%S config-replicator"
+
+              kubectl get ns -o custom-columns=:.metadata.name | 
+              grep vote-pr |
+              while read ns; do 
+                  kubectl get secret aws-ecr-auth-docker-config \
+                  --namespace vote \
+                  --output json | 
+                  jq "del(.metadata | .resourceVersion, .uid) | .metadata.namespace=\"$ns\"" |
+                  kubectl apply -f -
+              done
+              sleep 10; 
+              done
+

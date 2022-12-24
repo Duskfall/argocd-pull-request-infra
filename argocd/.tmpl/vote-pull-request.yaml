@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ${project_name}-pr
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  generators:
+  - pullRequest:
+      github:
+        # gitHub organization or user
+        owner: ${github_owner}
+        # The Github repository
+        repo: ${github_repo_name_vote}
+        # reference to a secret containing an access token
+        tokenRef:
+          secretName: github-token
+          key: token
+        # labels is used to filter the PRs that you want to target
+        labels:
+        - preview
+      requeueAfterSeconds: 90
+  # https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators-Pull-Request/#template
+  template:
+    metadata:
+      name: '${project_name}-{{branch}}-{{number}}'
+      namespace: argocd
+    spec:
+      project: default
+
+      source:
+        repoURL: ${github_repo_url_infra}
+        # targetRevision: '{{head_sha}}'
+        path: manifests/overlays/pr-{{number}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: vote-pr-{{number}} # /!\ important : must be uniq
+        
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated:
+          selfHeal: true
+          prune: true                     
