@@ -16,45 +16,17 @@ locals {
   kind_localhost_port        = 8443
   kind_listen_address        = "0.0.0.0"
 
-  cluster_ports = {
-    http : {
-      container : 30000
-      host : 9000
+  cluster_ports = merge(
+    {
+      "http" = {
+        container = 30000
+        host      = 9000
+      }
     },
-
-    pr_1 : {
-      container : 30001
-      host : 9001
-    },
-
-    pr_2 : {
-      container : 30002
-      host : 9002
-    },
-
-    pr_3 : {
-      container : 30003
-      host : 9003
-    },
-
-    pr_4 : {
-      container : 30004
-      host : 9004
+    { for i in range(30001, 31000) : "pr_${i}" => {
+      container = i
+      host      = i
+      } if i != 30080
     }
-
-    pr_5 : {
-      container : 30005
-      host : 9005
-    }
-
-    pr_6 : {
-      container : 30006
-      host : 9006
-    }
-
-    pr_7 : {
-      container : 30007
-      host : 9007
-    }
-  }
+  )
 }
