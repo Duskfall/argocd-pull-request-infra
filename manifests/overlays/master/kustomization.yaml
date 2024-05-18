@@ -27,7 +27,7 @@ patchesStrategicMerge:
       spec:
         containers:
           - name: vote
-            image: 789037212033.dkr.ecr.us-east-1.amazonaws.com/pull-request-vote:0.0.6
+            image: 789037212033.dkr.ecr.us-east-1.amazonaws.com/pull-request-vote:0.0.5
             env:
             - name: VERSION
-              value: 0.0.6
+              value: 0.0.5
