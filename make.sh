@@ -67,11 +67,11 @@ env-create() {
     # setup .env file again
     # /!\ use your own values
     scripts/env-file.sh .env \
-        AWS_REGION=eu-west-3 \
-        GITHUB_OWNER=jeromedecoster \
-        GITHUB_REPO_URL_INFRA=git@github.com:jeromedecoster/argocd-pull-request-infra.git \
-        GITHUB_REPO_URL_VOTE=git@github.com:jeromedecoster/argocd-pull-request-vote.git \
-        GITHUB_TOKEN=
+        AWS_REGION=us-east-1 \
+        GITHUB_OWNER=Duskfall \
+        GITHUB_REPO_URL_INFRA=git@github.com:Duskfall/argocd-pull-request-infra.git \
+        GITHUB_REPO_URL_VOTE=git@github.com:Duskfall/argocd-pull-request-vote.git \
+        GITHUB_TOKEN=$GITHUB_TOKEN
 }
 
 # terraform init (upgrade) + validate

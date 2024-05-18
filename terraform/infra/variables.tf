@@ -30,3 +30,12 @@ variable "github_repo_name_vote" {
 variable "github_repo_name_infra" {
   default = ""
 }
+variable "aws_access_key_id" {
+  default   = ""
+  sensitive = true
+}
+
+variable "aws_secret_access_key" {
+  default   = ""
+  sensitive = true
+}

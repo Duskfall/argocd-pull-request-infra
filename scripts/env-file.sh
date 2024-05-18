@@ -18,7 +18,7 @@ usage() {
     echo
     echo "      examples:"
     echo "      - $(basename $0) .env AWS_REGION=us-east-1"
-    echo "      - AWS_REGION=eu-west-3 $(basename $0) .env AWS_REGION"
+    echo "      - AWS_REGION=us-east-1 $(basename $0) .env AWS_REGION"
     echo "      - ENV_FILE_EMPTY_OVERWRITE=1 $(basename $0) .env AWS_REGION="
     echo
 }

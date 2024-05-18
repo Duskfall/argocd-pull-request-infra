@@ -3,8 +3,8 @@ terraform {
     # https://registry.terraform.io/providers/hashicorp/aws/latest
     aws = {
       source = "hashicorp/aws"
-      # >= 4.41.0 <5.0.0
-      version = "~> 4.41"
+      # >= 4.41.0 <5           version = "~> 55.0.0
+
     }
 
     # https://registry.terraform.io/providers/hashicorp/local/latest
