@@ -1,0 +1,33 @@
+bases:
+- ../../base
+
+# /!\ important !
+# https://kubectl.docs.kubernetes.io/references/kustomize/builtins/#_namespacetransformer_
+namespace: vote-pr-4
+
+patches:
+- target:
+    kind: Service
+    name: vote
+    namespace: vote
+  patch: |-
+    - op: replace
+      path: /spec/ports/0/nodePort
+      value: 30004
+
+patchesStrategicMerge:
+- |-
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: vote
+    namespace: vote
+  spec:
+    template:
+      spec:
+        containers:
+          - name: vote
+            image: 789037212033.dkr.ecr.us-east-1.amazonaws.com/pull-request-vote-pr-4:79ed9b70ed8a95ff0a3c2d3ec76b4a7b2bf4c738
+            env:
+            - name: VERSION
+              value: 79ed9b70ed8a95ff0a3c2d3ec76b4a7b2bf4c738
