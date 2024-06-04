@@ -3,7 +3,7 @@ bases:
 
 # /!\ important !
 # https://kubectl.docs.kubernetes.io/references/kustomize/builtins/#_namespacetransformer_
-namespace: 
+namespace: vote
 
 patches:
 - target:
@@ -27,7 +27,7 @@ patchesStrategicMerge:
       spec:
         containers:
           - name: vote
-            image: 789037212033.dkr.ecr.us-east-1.amazonaws.com/pull-request-vote:0.0.9
+            image: 789037212033.dkr.ecr.us-east-1.amazonaws.com/pull-request-vote:0.0.1
             env:
             - name: VERSION
-              value: 0.0.9
+              value: 0.0.1
