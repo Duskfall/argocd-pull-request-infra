@@ -23,10 +23,10 @@ locals {
         host      = 9000
       }
     },
-    { for i in range(30001, 31000) : "pr_${i}" => {
-      container = i
-      host      = i
-      } if i != 30080
+    { for i in range(1, 200) : "pr_${i}" => {
+      container = 30010 + i
+      host      = 9010 + i
+      } if i != 70
     }
   )
 }
