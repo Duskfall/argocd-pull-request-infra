@@ -3,7 +3,7 @@ bases:
 
 # /!\ important !
 # https://kubectl.docs.kubernetes.io/references/kustomize/builtins/#_namespacetransformer_
-namespace: vote
+namespace: vote-pr-13
 
 patches:
 - target:
@@ -13,7 +13,7 @@ patches:
   patch: |-
     - op: replace
       path: /spec/ports/0/nodePort
-      value: 30000
+      value: 30013
 
 patchesStrategicMerge:
 - |-
@@ -27,7 +27,7 @@ patchesStrategicMerge:
       spec:
         containers:
           - name: vote
-            image: 789037212033.dkr.ecr.us-east-1.amazonaws.com/pull-request-vote:0.0.9
+            image: 789037212033.dkr.ecr.us-east-1.amazonaws.com/pull-request-vote-pr-13:bbd7a44965f2cb6412c333d15d3358b7c6139642
             env:
             - name: VERSION
-              value: 0.0.9
+              value: bbd7a44965f2cb6412c333d15d3358b7c6139642
