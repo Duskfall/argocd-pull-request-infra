@@ -3,7 +3,7 @@ bases:
 
 # /!\ important !
 # https://kubectl.docs.kubernetes.io/references/kustomize/builtins/#_namespacetransformer_
-namespace: vote
+namespace: 
 
 patches:
 - target:
